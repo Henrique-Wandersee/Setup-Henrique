@@ -1,126 +1,156 @@
 "use server";
 
-import crypto from "crypto";
-import bcrypt from "bcryptjs";
+import { registerSchema, forgotPasswordSchema, resetPasswordSchema } from "@/lib/validations/auth";
+import { hashPassword, generateRawToken, hashToken } from "@/lib/security";
+import { sendEmailVerificationEmail, sendPasswordResetEmail } from "@/lib/resend";
 import { prisma } from "@/lib/prisma";
-import { sendPasswordResetEmail } from "@/lib/resend";
 
-/**
- * Action de Cadastro de Novo Usuário
- */
 export async function registerUserAction(formData: { name: string; email: string; password: string }) {
   try {
-    const { name, email, password } = formData;
-
-    if (!email || !password || !name) {
-      return { success: false, message: "Todos os campos são obrigatórios." };
+    const validation = registerSchema.safeParse(formData);
+    if (!validation.success) {
+      return { success: false, message: validation.error.errors.map((e: any) => e.message).join(" ") };
     }
+
+    const { name, email, password } = validation.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      return { success: false, message: "Este e-mail já está cadastrado no sistema." };
+      if (existingUser.emailVerified) {
+        return { success: true, message: "Se as informações forem válidas, um e-mail de confirmação foi enviado." };
+      }
+
+      const rawToken = generateRawToken();
+      const tokenHash = hashToken(rawToken);
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await prisma.verificationToken.create({
+        data: {
+          tokenHash,
+          userId: existingUser.id,
+          type: "EMAIL_VERIFICATION",
+          expiresAt,
+        },
+      });
+
+      await sendEmailVerificationEmail(email, rawToken);
+
+      return { success: true, message: "Reenviamos um novo e-mail de confirmação para ativar sua conta." };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await hashPassword(password);
 
-    const user = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         email,
-        password: hashedPassword,
+        passwordHash,
+        emailVerified: null,
         role: "USER",
-        xp: 100, // Bônus de boas-vindas
-        level: 1,
       },
     });
 
-    return { success: true, message: "Conta criada com sucesso! Faça login para continuar." };
+    const rawToken = generateRawToken();
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.verificationToken.create({
+      data: {
+        tokenHash,
+        userId: newUser.id,
+        type: "EMAIL_VERIFICATION",
+        expiresAt,
+      },
+    });
+
+    await sendEmailVerificationEmail(email, rawToken);
+
+    return { success: true, message: "Conta criada com sucesso! Verifique seu e-mail para ativar." };
   } catch (error: any) {
     console.error("Erro no cadastro:", error);
     return { success: false, message: error.message || "Erro ao criar conta." };
   }
 }
 
-/**
- * Etapa 4: Lógica de Esqueci Minha Senha (Gera Token Seguro & Envia por E-mail via Resend)
- */
 export async function requestPasswordResetAction(email: string) {
   try {
-    if (!email) {
-      return { success: false, message: "Por favor, informe seu e-mail." };
+    const validation = forgotPasswordSchema.safeParse({ email });
+    if (!validation.success) {
+      return { success: false, message: "Informe um e-mail válido." };
     }
+
+    const genericResponse = {
+      success: true,
+      message: "Se o e-mail estiver cadastrado, você receberá o link de redefinição em instantes.",
+    };
 
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      // Para segurança, não revela explicitamente se o e-mail não existe
-      return {
-        success: true,
-        message: "Se o e-mail estiver cadastrado, você receberá o link de redefinição em instantes.",
-      };
+      return genericResponse;
     }
 
-    // 1. Gera um token criptograficamente seguro (32 bytes em hex)
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // Válido por 1 hora
+    const rawToken = generateRawToken();
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-    // 2. Salva o token no banco de dados
-    await prisma.passwordResetToken.create({
+    await prisma.verificationToken.create({
       data: {
-        email,
-        token,
+        tokenHash,
+        userId: user.id,
+        type: "PASSWORD_RESET",
         expiresAt,
       },
     });
 
-    // 3. Envia o e-mail usando Resend
-    await sendPasswordResetEmail(email, token);
+    await sendPasswordResetEmail(email, rawToken);
 
-    return {
-      success: true,
-      message: "Instruções de redefinição enviadas para seu e-mail! Verifique sua caixa de entrada.",
-    };
+    return genericResponse;
   } catch (error: any) {
     console.error("Erro ao solicitar redefinição de senha:", error);
     return { success: false, message: "Falha ao processar solicitação de senha." };
   }
 }
 
-/**
- * Action de Confirmação e Redefinição de Senha
- */
 export async function resetPasswordAction(token: string, newPassword: string) {
   try {
-    if (!token || !newPassword) {
-      return { success: false, message: "Token e nova senha são obrigatórios." };
+    const validation = resetPasswordSchema.safeParse({ token, password: newPassword });
+    if (!validation.success) {
+      return { success: false, message: validation.error.errors.map((e: any) => e.message).join(" ") };
     }
 
-    // Busca o token no banco
-    const resetTokenRecord = await prisma.passwordResetToken.findUnique({
-      where: { token },
+    const tokenHash = hashToken(token);
+
+    const tokenRecord = await prisma.verificationToken.findUnique({
+      where: { tokenHash },
     });
 
-    if (!resetTokenRecord || resetTokenRecord.expiresAt < new Date()) {
-      return { success: false, message: "Token inválido ou expirado. Solicite uma nova redefinição." };
+    if (!tokenRecord || tokenRecord.type !== "PASSWORD_RESET" || tokenRecord.usedAt || tokenRecord.expiresAt < new Date()) {
+      return { success: false, message: "Token inválido, expirado ou já utilizado." };
     }
 
-    // Hash da nova senha
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await hashPassword(newPassword);
 
-    // Atualiza a senha do usuário
-    await prisma.user.update({
-      where: { email: resetTokenRecord.email },
-      data: { password: hashedPassword },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: tokenRecord.userId },
+        data: {
+          passwordHash,
+          failedAttempts: 0,
+          lockedUntil: null,
+          updatedAt: new Date(),
+        },
+      });
 
-    // Deleta o token já utilizado
-    await prisma.passwordResetToken.delete({
-      where: { id: resetTokenRecord.id },
+      await tx.verificationToken.update({
+        where: { id: tokenRecord.id },
+        data: { usedAt: new Date() },
+      });
     });
 
     return { success: true, message: "Senha redefinida com sucesso! Você já pode fazer login." };

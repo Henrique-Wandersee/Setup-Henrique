@@ -6,15 +6,16 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("⚡ Seeding database with Futuristic PC Gamer Raffle data...");
 
-  // 1. Create Demo User (NEXUS_RIDER)
-  const hashedPassword = await bcrypt.hash("cyber123", 10);
+  // 1. Create Demo User (NEXUS_RIDER) with verified email
+  const hashedPassword = await bcrypt.hash("Cyber123!", 12);
   const demoUser = await prisma.user.upsert({
     where: { email: "nexus_rider@cybernet.io" },
     update: {},
     create: {
       name: "NEXUS_RIDER",
       email: "nexus_rider@cybernet.io",
-      password: hashedPassword,
+      passwordHash: hashedPassword,
+      emailVerified: new Date(), // E-mail verificado para login imediato
       role: "USER",
       xp: 14250,
       level: 28,
@@ -56,7 +57,6 @@ async function main() {
   console.log("🎫 Generating 1,000 ticket slots...");
   const ticketsData = [];
   for (let i = 1; i <= 1000; i++) {
-    // Mark some numbers as SOLD / PAID for realistic simulation (e.g., #42, #88, #100, #333, #777)
     const isSold = [42, 88, 100, 333, 500, 777, 888, 999].includes(i);
     const isReserved = [15, 27, 212, 350].includes(i);
 

@@ -1,65 +1,113 @@
 // Prisma Schema for Futuristic PC Gamer Raffle Application
-// Etapa 1: Modelagem do Banco de Dados
-// Provider: default is "sqlite" for out-of-the-box local execution.
-// To use PostgreSQL with native Enums, change provider to "postgresql" and update DATABASE_URL in .env
+// Configurado para PostgreSQL com Segurança Avançada de Autenticação
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum RaffleStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum TicketStatus {
+  AVAILABLE
+  RESERVED
+  PAID
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
 }
 
 model User {
   id                  String               @id @default(uuid())
   name                String?
   email               String               @unique
-  password            String               // Hashed password (bcrypt)
-  role                String               @default("USER") // USER, ADMIN
+  passwordHash        String               // Criptografia com bcrypt (salt rounds 10-12)
+  emailVerified       DateTime?            // Confirmação de e-mail obrigatória
+  role                Role                 @default(USER)
   avatar              String?
   xp                  Int                  @default(0)
   level               Int                  @default(1)
+  
+  // Controle de Bloqueio por Concorrência de Tentativas de Login
+  failedAttempts      Int                  @default(0)
+  lockedUntil         DateTime?
+
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   
   tickets             Ticket[]
   payments            Payment[]
-  passwordResetTokens PasswordResetToken[]
+  verificationTokens  VerificationToken[]
+}
+
+model VerificationToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique // Apenas o HASH SHA-256 do token é salvo no banco (segurança)
+  userId    String
+  type      TokenType // EMAIL_VERIFICATION ou PASSWORD_RESET
+  expiresAt DateTime  // 24h para e-mail, 60min para reset de senha
+  usedAt    DateTime? // Marcação de uso único
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId, type])
 }
 
 model Raffle {
-  id           String   @id @default(uuid())
-  title        String   // Ex: "THE QUANTUM STORM - ULTIMATE PC GAMER"
-  description  String   // Specs & detailed breakdown
-  price        Float    // Price per ticket in BRL
-  totalNumbers Int      // Total tickets (e.g. 1000)
-  status       String   @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
-  prizeName    String   // Ex: "NVIDIA RTX 4090 + i9-14900KS Custom Rig"
-  prizeSpecs   String   // JSON string of specs
-  drawDate     DateTime // Date of live draw
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String       @id @default(uuid())
+  title        String       // Ex: "THE QUANTUM STORM - ULTIMATE PC GAMER"
+  description  String       // Specs & detailed breakdown
+  price        Float        // Price per ticket in BRL
+  totalNumbers Int          // Total tickets (e.g. 1000)
+  status       RaffleStatus @default(ACTIVE)
+  prizeName    String       // Ex: "NVIDIA RTX 4090 + i9-14900KS Custom Rig"
+  prizeSpecs   String       // JSON string of specs
+  drawDate     DateTime     // Date of live draw
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   tickets      Ticket[]
   payments     Payment[]
 }
 
 model Ticket {
-  id        String    @id @default(uuid())
+  id        String       @id @default(uuid())
   raffleId  String
   userId    String?
   paymentId String?
-  number    Int       // Ticket number (1 to totalNumbers)
-  status    String    @default("AVAILABLE") // AVAILABLE, RESERVED, PAID
-  expiresAt DateTime? // Reservation expiration (e.g., 15 minutes)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  number    Int          // Ticket number (1 to totalNumbers)
+  status    TicketStatus @default(AVAILABLE)
+  expiresAt DateTime?    // Reservation expiration (e.g., 15 minutes)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  raffle    Raffle    @relation(fields: [raffleId], references: [id], onDelete: Cascade)
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  payment   Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  raffle    Raffle       @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  payment   Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
 
   @@unique([raffleId, number])
   @@index([raffleId, status])
@@ -67,31 +115,19 @@ model Ticket {
 }
 
 model Payment {
-  id            String   @id @default(uuid())
+  id            String        @id @default(uuid())
   userId        String
   raffleId      String
-  externalId    String?  @unique // Mercado Pago Payment ID
+  externalId    String?       @unique // Mercado Pago Payment ID
   amount        Float
-  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
-  qrCode        String?  // PIX Copy & Paste string payload
-  qrCodeBase64  String?  // PIX QR Code Base64 image
-  ticketNumbers String   // JSON string array of reserved numbers [147, 212, 350]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  status        PaymentStatus @default(PENDING)
+  qrCode        String?       // PIX Copy & Paste string payload
+  qrCodeBase64  String?       // PIX QR Code Base64 image
+  ticketNumbers String        // JSON string array of reserved numbers [147, 212, 350]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  raffle        Raffle   @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  raffle        Raffle        @relation(fields: [raffleId], references: [id], onDelete: Cascade)
   tickets       Ticket[]
-}
-
-model PasswordResetToken {
-  id        String   @id @default(uuid())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [email], references: [email], onDelete: Cascade)
-
-  @@index([token])
 }

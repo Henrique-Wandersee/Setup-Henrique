@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { X, Lock, Mail, User, Key, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import { signIn } from "next-auth/react";
-import { registerUserAction, requestPasswordResetAction } from "@/app/actions/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -42,19 +41,32 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
           }, 1000);
         }
       } else if (mode === "register") {
-        const res = await registerUserAction(formData);
-        if (res.success) {
-          setFeedback({ type: "success", text: res.message });
-          setTimeout(() => setMode("login"), 1500);
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setFeedback({ type: "success", text: data.message });
         } else {
-          setFeedback({ type: "error", text: res.message });
+          setFeedback({ type: "error", text: data.error || "Erro ao efetuar cadastro." });
         }
       } else if (mode === "forgot") {
-        const res = await requestPasswordResetAction(formData.email);
-        if (res.success) {
-          setFeedback({ type: "success", text: res.message });
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: formData.email }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setFeedback({ type: "success", text: data.message });
         } else {
-          setFeedback({ type: "error", text: res.message });
+          setFeedback({ type: "error", text: data.error || "Erro ao solicitar recuperação." });
         }
       }
     } catch (err: any) {
@@ -186,6 +198,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = "login" }: Au
                   className="w-full bg-cyber-void border border-cyber-border rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-cyber-cyan"
                 />
               </div>
+              {mode === "register" && (
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Mínimo 8 caracteres, com maiúscula, minúscula e número.
+                </p>
+              )}
             </div>
           )}
 
