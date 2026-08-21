@@ -17,15 +17,14 @@ export default function Header({ onOpenAuth }: HeaderProps) {
       {/* ROCKSTAR GAMES STYLE TOP ANNOUNCEMENT BANNER */}
       <div className="bg-gradient-to-r from-vice-purple via-vice-magenta to-vice-sunset text-white py-1 px-4 text-center font-mono text-[11px] font-bold tracking-widest uppercase flex items-center justify-center gap-2 shadow-vice-glow">
         <Sparkles className="w-3.5 h-3.5 animate-pulse text-rockstar-yellow" />
-        <span>SORTEIO EXCLUSIVO HENRIQUE SETUP — APENAS 100 BILHETES DISPONÍVEIS</span>
+        <span>SORTEIO EXCLUSIVO HENRIQUE SETUP — 1.000 BILHETES (R$ 30,00 CADA)</span>
         <Sparkles className="w-3.5 h-3.5 animate-pulse text-rockstar-yellow" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-3 flex items-center justify-between">
         
-        {/* BRAND LOGO: HENRIQUE SETUP (ROCKSTAR GAMES STYLE R* EMBLEM) */}
+        {/* BRAND LOGO: HENRIQUE SETUP */}
         <a href="#" className="flex items-center space-x-3 group">
-          {/* ROCKSTAR STYLE H* EMBLEM */}
           <div className="relative flex items-center justify-center w-10 h-10 bg-rockstar-yellow border-2 border-white rounded-md shadow-rockstar-glow group-hover:scale-105 transition-all">
             <span className="font-cyber font-black text-black text-xl leading-none tracking-tighter">H</span>
             <span className="absolute top-0.5 right-0.5 font-bold text-black text-xs">★</span>
@@ -36,7 +35,7 @@ export default function Header({ onOpenAuth }: HeaderProps) {
                 EDITION #001
               </span>
               <span className="bg-vice-magenta/20 text-vice-magenta text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border border-vice-magenta/40">
-                100 VAGAS
+                1.000 VAGAS
               </span>
             </div>
             <h1 className="font-cyber text-lg md:text-xl font-black tracking-wider text-white group-hover:text-rockstar-yellow transition-colors uppercase">
@@ -51,7 +50,7 @@ export default function Header({ onOpenAuth }: HeaderProps) {
             VISÃO GERAL
           </a>
           <a href="#raffle-grid" className="hover:text-vice-magenta transition-colors flex items-center gap-1.5 py-1 border-b-2 border-transparent hover:border-vice-magenta">
-            BILHETES (100)
+            BILHETES (1.000)
           </a>
           <a href="#specs" className="hover:text-rockstar-yellow transition-colors flex items-center gap-1.5 py-1 border-b-2 border-transparent hover:border-rockstar-yellow">
             ESPECIFICAÇÕES

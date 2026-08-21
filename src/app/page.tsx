@@ -6,11 +6,10 @@ import HeroQuantumStorm from "@/components/HeroQuantumStorm";
 import RaffleGrid, { TicketItem } from "@/components/RaffleGrid";
 import CheckoutModal from "@/components/CheckoutModal";
 import AuthModal from "@/components/AuthModal";
-import { reserveTicketsAction } from "@/app/actions/tickets";
-import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { reserveTicketsAction, confirmPaymentAction } from "@/app/actions/tickets";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 
 export default function Home() {
-  // Generate 100 tickets (1 to 100)
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -27,13 +26,27 @@ export default function Home() {
   }>({});
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Populate tickets 1 to 100
-    const initial: TicketItem[] = [];
-    for (let i = 1; i <= 100; i++) {
-      initial.push({ number: i, status: "AVAILABLE" });
+  // Função para buscar o estado em tempo real dos 1.000 bilhetes no banco
+  const fetchTickets = async () => {
+    try {
+      const res = await fetch("/api/tickets");
+      const data = await res.json();
+      if (data.tickets) {
+        setTickets(data.tickets);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar bilhetes:", err);
+      // Fallback local se a API estiver inicializando
+      const initial: TicketItem[] = [];
+      for (let i = 1; i <= 1000; i++) {
+        initial.push({ number: i, status: "AVAILABLE" });
+      }
+      setTickets(initial);
     }
-    setTickets(initial);
+  };
+
+  useEffect(() => {
+    fetchTickets();
   }, []);
 
   const handleToggleNumber = (num: number) => {
@@ -61,7 +74,6 @@ export default function Home() {
     setIsReserving(true);
     try {
       const res = await reserveTicketsAction({
-        raffleId: "raffle-henrique-setup-001",
         numbers: selectedNumbers,
         userEmail: "henrique@setup.io",
         userName: "Henrique",
@@ -87,23 +99,31 @@ export default function Home() {
     }
   };
 
-  const handleConfirmPaymentSimulation = () => {
-    setIsReserving(true);
-    setTimeout(() => {
-      setTickets((prev) =>
-        prev.map((t) => (selectedNumbers.includes(t.number) ? { ...t, status: "PAID" } : t))
-      );
-      setIsCheckoutOpen(false);
-      setIsReserving(false);
-      setSuccessBanner(
-        `⚡ COMPRA PARABÉNS! O pagamento PIX para os bilhetes [ ${selectedNumbers.join(
-          ", "
-        )} ] foi APROVADO! Boa sorte no sorteio!`
-      );
-      setSelectedNumbers([]);
+  // Confirmação de Pagamento PIX e Atualização no Banco no Status PAID (Comprado)
+  const handleConfirmPaymentSimulation = async () => {
+    if (!checkoutData.paymentId) return;
 
-      setTimeout(() => setSuccessBanner(null), 8000);
-    }, 1500);
+    setIsReserving(true);
+    try {
+      const res = await confirmPaymentAction(checkoutData.paymentId);
+      if (res.success) {
+        setIsCheckoutOpen(false);
+        setSuccessBanner(
+          `⚡ PARABÉNS! O pagamento PIX para os bilhetes [ ${selectedNumbers.join(
+            ", "
+          )} ] foi APROVADO e salvo no banco de dados como COMPRADOS/INDISPONÍVEIS!`
+        );
+        setSelectedNumbers([]);
+        await fetchTickets(); // Atualiza em tempo real o estado dos bilhetes no banco
+        setTimeout(() => setSuccessBanner(null), 8000);
+      } else {
+        alert(res.message);
+      }
+    } catch (err: any) {
+      alert("Erro ao confirmar pagamento: " + err.message);
+    } finally {
+      setIsReserving(false);
+    }
   };
 
   return (
@@ -135,7 +155,7 @@ export default function Home() {
         {/* HERO SECTION */}
         <HeroQuantumStorm />
 
-        {/* RAFFLE NUMBER GRID (100 NUMBERS) */}
+        {/* RAFFLE NUMBER GRID (1.000 NUMBERS - R$ 30,00) */}
         <RaffleGrid
           tickets={tickets}
           selectedNumbers={selectedNumbers}
@@ -143,7 +163,7 @@ export default function Home() {
           onAutoHackSelect={handleAutoHackSelect}
           onClearSelection={handleClearSelection}
           onProceedToCheckout={handleProceedToCheckout}
-          ticketPrice={15.0}
+          ticketPrice={30.0}
         />
       </main>
 
@@ -152,7 +172,7 @@ export default function Home() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         selectedNumbers={selectedNumbers}
-        amount={checkoutData.amount || selectedNumbers.length * 15.0}
+        amount={checkoutData.amount || selectedNumbers.length * 30.0}
         qrCode={checkoutData.qrCode || ""}
         qrCodeBase64={checkoutData.qrCodeBase64}
         expiresAt={checkoutData.expiresAt}
@@ -172,7 +192,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
             <div className="font-cyber font-black text-slate-200 text-sm tracking-wider uppercase">
-              HENRIQUE SETUP ★ RIFA PC GAMER
+              HENRIQUE SETUP ★ RIFA PC GAMER (1.000 Ns - R$ 30,00)
             </div>
             <p className="mt-1">© 2026 HENRIQUE SETUP. Todos os direitos reservados. Sorteio realizado via Loteria Federal.</p>
           </div>

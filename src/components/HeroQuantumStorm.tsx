@@ -26,13 +26,12 @@ export default function HeroQuantumStorm() {
   return (
     <section id="hero" className="relative w-full py-12 md:py-20 bg-rockstar-black overflow-hidden border-b border-rockstar-yellow/40 font-vice">
       
-      {/* FULL BRIGHTNESS HD BACKGROUND IMAGE - ZERO MATTE OVERLAY */}
+      {/* FULL BRIGHTNESS HD BACKGROUND IMAGE */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-90 pointer-events-none transition-all duration-300"
         style={{ backgroundImage: "url('/images/vice_city_bg.jpg')" }}
       />
       
-      {/* SOFT VIGNETTE JUST FOR EDGE PROTECTION */}
       <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -43,7 +42,7 @@ export default function HeroQuantumStorm() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-rockstar-black/90 border border-rockstar-yellow shadow-rockstar-glow backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-rockstar-yellow animate-ping" />
             <span className="font-mono text-xs text-rockstar-yellow font-black tracking-widest uppercase">
-              SORTEIO OFICIAL HENRIQUE SETUP — 100 BILHETES
+              SORTEIO OFICIAL HENRIQUE SETUP — 1.000 BILHETES
             </span>
           </div>
 
@@ -57,7 +56,7 @@ export default function HeroQuantumStorm() {
             </h1>
             <p className="font-vice text-base sm:text-lg text-slate-100 max-w-xl mt-3 leading-relaxed [text-shadow:_0_2px_8px_rgba(0,0,0,0.9)] font-medium">
               Concorra ao incrível <strong className="text-rockstar-yellow font-bold">PC GAMER ENTHUSIAST CUSTOM</strong>.
-              Equipado com a soberana <span className="text-vice-magenta font-bold">RTX 4090 24GB</span>, Intel Core i9-14900KS e sistema de refrigeração líquida customizada Barrow com iluminação RGB sincronizada.
+              Equipado com a soberana <span className="text-vice-magenta font-bold">RTX 4090 24GB</span>, Intel Core i9-14900KS e sistema de refrigeração líquida customizada Barrow por apenas <strong className="text-rockstar-yellow font-bold">R$ 30,00</strong>.
             </p>
           </div>
 
@@ -69,7 +68,7 @@ export default function HeroQuantumStorm() {
                 <span>SORTEIO PELA LOTERIA FEDERAL EM:</span>
               </div>
               <span className="text-[11px] font-bold text-black bg-rockstar-yellow px-2.5 py-0.5 rounded shadow-rockstar-glow">
-                100 BILHETES NO TOTAL
+                1.000 BILHETES NO TOTAL
               </span>
             </div>
 
@@ -134,11 +133,11 @@ export default function HeroQuantumStorm() {
               href="#raffle-grid"
               className="px-8 py-4 bg-rockstar-yellow hover:bg-yellow-400 text-black font-cyber font-black text-sm tracking-wider rounded-lg shadow-rockstar-glow transition-all hover:scale-105 flex items-center gap-2 uppercase"
             >
-              ESCOLHER SEU NÚMERO (R$ 15,00) <ChevronRight className="w-5 h-5" />
+              ESCOLHER SEU NÚMERO (R$ 30,00) <ChevronRight className="w-5 h-5" />
             </a>
             <div className="flex items-center gap-2 text-xs font-mono text-slate-200 bg-rockstar-black/90 border border-rockstar-border px-3 py-2 rounded-lg backdrop-blur-md">
               <Flame className="w-4 h-4 text-vice-magenta animate-bounce" />
-              <span className="font-bold text-white">100 BILHETES DISPONÍVEIS</span>
+              <span className="font-bold text-white">1.000 BILHETES NO TOTAL</span>
             </div>
           </div>
 

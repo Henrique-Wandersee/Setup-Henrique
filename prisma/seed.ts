@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("⚡ Seeding database with Henrique Setup Raffle data (100 numbers)...");
+  console.log("⚡ Seeding database with Henrique Setup Raffle data (1.000 numbers - R$ 30,00)...");
 
   // 1. Create Demo User
   const hashedPassword = await bcrypt.hash("Henrique123!", 12);
@@ -25,14 +25,14 @@ async function main() {
 
   console.log(`👤 User created: ${demoUser.name} (${demoUser.email})`);
 
-  // Clean existing tickets and raffles for fresh 100-ticket setup
+  // Clean existing tickets, payments, and raffles
   await prisma.ticket.deleteMany({});
   await prisma.payment.deleteMany({});
   await prisma.raffle.deleteMany({});
 
-  // 2. Create Henrique Setup Raffle PC Gamer
+  // 2. Create Henrique Setup Raffle PC Gamer (1.000 Numbers, R$ 30,00)
   const drawDate = new Date();
-  drawDate.setDate(drawDate.getDate() + 14); // 14 days draw date
+  drawDate.setDate(drawDate.getDate() + 14);
 
   const specs = JSON.stringify([
     { label: "PLACA DE VÍDEO", spec: "NVIDIA GeForce RTX 4090 24GB GDDR6X", level: 100 },
@@ -47,8 +47,8 @@ async function main() {
     data: {
       title: "HENRIQUE SETUP - ULTIMATE RIG ENTHUSIAST",
       description: "Setup exclusivo montado sob medida com Water Cooler Custom rígido Barrow, iluminação RGB sincronizada, RTX 4090 e processador i9-14900KS.",
-      price: 15.0, // R$ 15,00 por número
-      totalNumbers: 100, // APENAS 100 NÚMEROS
+      price: 30.0, // R$ 30,00 por bilhete
+      totalNumbers: 1000, // 1.000 BILHETES NO TOTAL
       status: "ACTIVE",
       prizeName: "PC Gamer Custom Hardline Liquid Cooling RTX 4090",
       prizeSpecs: specs,
@@ -56,17 +56,20 @@ async function main() {
     },
   });
 
-  console.log(`🎮 Raffle created: ${raffle.title} (ID: ${raffle.id})`);
+  console.log(`🎮 Raffle created: ${raffle.title} (ID: ${raffle.id}) - R$ 30,00`);
 
-  // 3. Generate 100 Ticket records (1 to 100)
-  console.log("🎫 Generating 100 ticket slots (1 to 100)...");
+  // 3. Generate 1.000 Ticket records (1 to 1000)
+  console.log("🎫 Generating 1,000 ticket slots (1 to 1000)...");
   const ticketsData = [];
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= 1000; i++) {
+    // Simula alguns números como comprados (PAID) para demonstração (ex: 42, 88, 100, 333, 777)
+    const isPaid = [42, 88, 100, 333, 777].includes(i);
+
     ticketsData.push({
       raffleId: raffle.id,
       number: i,
-      status: "AVAILABLE", // Todos disponíveis para início das vendas!
-      userId: null,
+      status: isPaid ? "PAID" : "AVAILABLE",
+      userId: isPaid ? demoUser.id : null,
       expiresAt: null,
     });
   }
@@ -75,7 +78,7 @@ async function main() {
     data: ticketsData as any,
   });
 
-  console.log("✅ Database successfully seeded with 100 numbers!");
+  console.log("✅ Database successfully seeded with 1,000 numbers!");
 }
 
 main()

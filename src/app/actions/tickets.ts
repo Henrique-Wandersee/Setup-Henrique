@@ -5,7 +5,7 @@ import { generatePixPaymentPayload } from "@/lib/mercadopago";
 import { hashPassword } from "@/lib/security";
 
 export interface ReserveTicketsInput {
-  raffleId: string;
+  raffleId?: string;
   numbers: number[];
   userEmail?: string;
   userName?: string;
@@ -23,14 +23,14 @@ export interface ReserveTicketsResult {
 }
 
 /**
- * Etapa 2: Lógica de Reserva e Concorrência
- * Server Action que roda dentro de uma Prisma $transaction para evitar condições de corrida (Race Conditions).
+ * Server Action de Reserva de Bilhetes com Transação Atômica (R$ 30,00 por bilhete)
+ * Regra de Negócio: O bilhete fica "RESERVED" por 15 minutos até a confirmação do PIX.
  */
 export async function reserveTicketsAction(input: ReserveTicketsInput): Promise<ReserveTicketsResult> {
   try {
-    const { raffleId, numbers, userEmail = "nexus_rider@cybernet.io", userName = "Cyber Gamer" } = input;
+    const { numbers, userEmail = "henrique@setup.io", userName = "Henrique" } = input;
 
-    if (!raffleId || !numbers || numbers.length === 0) {
+    if (!numbers || numbers.length === 0) {
       return { success: false, message: "Nenhum número selecionado para reserva." };
     }
 
@@ -77,6 +77,7 @@ export async function reserveTicketsAction(input: ReserveTicketsInput): Promise<
         const ticket = existingTickets.find((t) => t.number === num);
 
         if (ticket) {
+          // Apenas bilhetes PAGO estão permanentemente indisponíveis
           if (ticket.status === "PAID") {
             unavailableNumbers.push(num);
           } else if (ticket.status === "RESERVED" && ticket.expiresAt && ticket.expiresAt > now) {
@@ -89,13 +90,14 @@ export async function reserveTicketsAction(input: ReserveTicketsInput): Promise<
 
       if (unavailableNumbers.length > 0) {
         throw new Error(
-          `Ops! Os seguintes números foram reservados ou comprados por outro usuário simultaneamente: [ ${unavailableNumbers.join(
+          `Ops! Os seguintes números foram comprados ou reservados por outro usuário: [ ${unavailableNumbers.join(
             ", "
-          )} ]. Por favor, escolha outros números.`
+          )} ]. Escolha outros bilhetes.`
         );
       }
 
-      const totalAmount = raffle.price * numbers.length;
+      // Regra de Valor: R$ 30,00 por bilhete
+      const totalAmount = 30.0 * numbers.length;
 
       for (const num of numbers) {
         await tx.ticket.upsert({
@@ -146,9 +148,9 @@ export async function reserveTicketsAction(input: ReserveTicketsInput): Promise<
     const pixData = await generatePixPaymentPayload({
       paymentId: result.payment.id,
       amount: result.totalAmount,
-      description: `Rifa PC Gamer Quantum Storm - Números: ${numbers.join(", ")}`,
+      description: `Rifa PC Gamer Henrique Setup (1000 Ns) - Números: ${numbers.join(", ")}`,
       email: result.user.email,
-      firstName: result.user.name || "Cyber Gamer",
+      firstName: result.user.name || "Henrique Setup Gamer",
     });
 
     await prisma.payment.update({
@@ -176,5 +178,56 @@ export async function reserveTicketsAction(input: ReserveTicketsInput): Promise<
       success: false,
       message: error.message || "Erro ao processar reserva. Tente novamente.",
     };
+  }
+}
+
+/**
+ * Server Action de Confirmação de Pagamento PIX
+ * Regra de Negócio: Transita os bilhetes para "PAID" no banco de dados, tornando-os INDISPONÍVEIS permanentemente!
+ */
+export async function confirmPaymentAction(paymentId: string) {
+  try {
+    if (!paymentId) {
+      return { success: false, message: "ID de pagamento inválido." };
+    }
+
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      return { success: false, message: "Pagamento não encontrado." };
+    }
+
+    const ticketNumbers: number[] = JSON.parse(payment.ticketNumbers || "[]");
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Atualiza Payment para APPROVED
+      await tx.payment.update({
+        where: { id: payment.id },
+        data: { status: "APPROVED" },
+      });
+
+      // 2. Atualiza Tickets para PAID (Comprado / Indisponível)
+      await tx.ticket.updateMany({
+        where: {
+          raffleId: payment.raffleId,
+          number: { in: ticketNumbers },
+        },
+        data: {
+          status: "PAID",
+          expiresAt: null,
+        },
+      });
+    });
+
+    return {
+      success: true,
+      message: `Pagamento aprovado com sucesso! Os bilhetes [ ${ticketNumbers.join(", ")} ] estão salvos no banco como COMPRADOS/INDISPONÍVEIS.`,
+      ticketNumbers,
+    };
+  } catch (error: any) {
+    console.error("Erro ao confirmar pagamento:", error);
+    return { success: false, message: "Erro ao confirmar pagamento." };
   }
 }
