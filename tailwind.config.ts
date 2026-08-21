@@ -9,6 +9,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        rockstar: {
+          yellow: "#fdb813",
+          black: "#0a0a0e",
+          card: "#121218",
+          panel: "#181822",
+          border: "#282836",
+        },
+        vice: {
+          magenta: "#ff007f",
+          purple: "#8a00d4",
+          sunset: "#ff5e00",
+          cyan: "#00f3ff",
+          dark: "#08080c",
+        },
         cyber: {
           cyan: "#00f3ff",
           magenta: "#ff007f",
@@ -23,48 +37,20 @@ const config: Config = {
         },
       },
       fontFamily: {
-        cyber: ["'Orbitron'", "'Rajdhani'", "sans-serif"],
+        rockstar: ["'Pricedown'", "'Impact'", "'Orbitron'", "sans-serif"],
+        vice: ["'Rajdhani'", "'Inter'", "sans-serif"],
         mono: ["'JetBrains Mono'", "'Fira Code'", "monospace"],
       },
       boxShadow: {
-        "cyan-glow": "0 0 20px rgba(0, 243, 255, 0.4), 0 0 40px rgba(0, 243, 255, 0.2)",
-        "magenta-glow": "0 0 20px rgba(255, 0, 127, 0.5), 0 0 40px rgba(255, 0, 127, 0.25)",
-        "yellow-glow": "0 0 20px rgba(255, 218, 0, 0.4)",
-        "neon-box": "0 0 15px rgba(0, 243, 255, 0.3), inset 0 0 15px rgba(0, 243, 255, 0.1)",
+        "rockstar-glow": "0 0 25px rgba(253, 184, 19, 0.4)",
+        "vice-glow": "0 0 30px rgba(255, 0, 127, 0.5), 0 0 50px rgba(138, 0, 212, 0.3)",
+        "cyan-glow": "0 0 20px rgba(0, 243, 255, 0.4)",
+        "magenta-glow": "0 0 20px rgba(255, 0, 127, 0.5)",
       },
       backgroundImage: {
-        "cyber-grid": "linear-gradient(to right, rgba(0,243,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,243,255,0.05) 1px, transparent 1px)",
-        "hexagon-pattern": "radial-gradient(circle at 50% 50%, rgba(0,243,255,0.15) 0%, transparent 80%)",
-        "laser-scan": "linear-gradient(to bottom, transparent 0%, rgba(0, 243, 255, 0.8) 50%, transparent 100%)",
-      },
-      animation: {
-        "pulse-glow": "pulseGlow 2s infinite alternate",
-        "laser-move": "laserScan 2.5s infinite linear",
-        "hologram-float": "hologramFloat 4s ease-in-out infinite",
-        "glitch": "glitch 1s infinite alternate",
-      },
-      keyframes: {
-        pulseGlow: {
-          "0%": { boxShadow: "0 0 10px rgba(0, 243, 255, 0.2)" },
-          "100%": { boxShadow: "0 0 25px rgba(0, 243, 255, 0.7), 0 0 50px rgba(255, 0, 127, 0.4)" },
-        },
-        laserScan: {
-          "0%": { top: "0%" },
-          "50%": { top: "95%" },
-          "100%": { top: "0%" },
-        },
-        hologramFloat: {
-          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
-          "50%": { transform: "translateY(-12px) rotate(0.5deg)" },
-        },
-        glitch: {
-          "0%": { transform: "translate(0)" },
-          "20%": { transform: "translate(-2px, 2px)" },
-          "40%": { transform: "translate(-2px, -2px)" },
-          "60%": { transform: "translate(2px, 2px)" },
-          "80%": { transform: "translate(2px, -2px)" },
-          "100%": { transform: "translate(0)" },
-        },
+        "vice-gradient": "linear-gradient(135deg, #ff007f 0%, #8a00d4 50%, #ff5e00 100%)",
+        "rockstar-gradient": "linear-gradient(to right, #fdb813, #ff5e00)",
+        "vice-sunset-overlay": "linear-gradient(to bottom, rgba(8, 8, 12, 0.3) 0%, rgba(8, 8, 12, 0.85) 75%, #08080c 100%)",
       },
     },
   },

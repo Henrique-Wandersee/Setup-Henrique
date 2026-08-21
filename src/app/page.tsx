@@ -5,13 +5,12 @@ import Header from "@/components/Header";
 import HeroQuantumStorm from "@/components/HeroQuantumStorm";
 import RaffleGrid, { TicketItem } from "@/components/RaffleGrid";
 import CheckoutModal from "@/components/CheckoutModal";
-import Leaderboard from "@/components/Leaderboard";
 import AuthModal from "@/components/AuthModal";
 import { reserveTicketsAction } from "@/app/actions/tickets";
-import { Cpu, ShieldCheck, Zap, Heart, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function Home() {
-  // Generate 1000 tickets simulation (with pre-sold numbers)
+  // Generate 100 tickets (1 to 100)
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -29,17 +28,10 @@ export default function Home() {
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
-    // Populate initial tickets 1..1000
+    // Populate tickets 1 to 100
     const initial: TicketItem[] = [];
-    const soldList = [42, 88, 100, 333, 500, 777, 888, 999];
-    const reservedList = [15, 27];
-
-    for (let i = 1; i <= 1000; i++) {
-      let status: "AVAILABLE" | "RESERVED" | "PAID" = "AVAILABLE";
-      if (soldList.includes(i)) status = "PAID";
-      else if (reservedList.includes(i)) status = "RESERVED";
-
-      initial.push({ number: i, status });
+    for (let i = 1; i <= 100; i++) {
+      initial.push({ number: i, status: "AVAILABLE" });
     }
     setTickets(initial);
   }, []);
@@ -68,12 +60,11 @@ export default function Home() {
 
     setIsReserving(true);
     try {
-      // Calls Server Action (Etapa 2: Concurrency Reservation)
       const res = await reserveTicketsAction({
-        raffleId: "raffle-quantum-storm-001",
+        raffleId: "raffle-henrique-setup-001",
         numbers: selectedNumbers,
-        userEmail: "nexus_rider@cybernet.io",
-        userName: "NEXUS_RIDER",
+        userEmail: "henrique@setup.io",
+        userName: "Henrique",
       });
 
       if (res.success && res.qrCode) {
@@ -99,16 +90,15 @@ export default function Home() {
   const handleConfirmPaymentSimulation = () => {
     setIsReserving(true);
     setTimeout(() => {
-      // Update local tickets to PAID
       setTickets((prev) =>
         prev.map((t) => (selectedNumbers.includes(t.number) ? { ...t, status: "PAID" } : t))
       );
       setIsCheckoutOpen(false);
       setIsReserving(false);
       setSuccessBanner(
-        `⚡ PARABÉNS NEXUS_RIDER! O pagamento PIX para os números [ ${selectedNumbers.join(
+        `⚡ COMPRA PARABÉNS! O pagamento PIX para os bilhetes [ ${selectedNumbers.join(
           ", "
-        )} ] foi APROVADO! +${selectedNumbers.length * 500} XP Concedidos!`
+        )} ] foi APROVADO! Boa sorte no sorteio!`
       );
       setSelectedNumbers([]);
 
@@ -117,16 +107,16 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-cyber-void text-slate-100 font-sans selection:bg-cyber-magenta selection:text-white">
+    <div className="min-h-screen flex flex-col bg-rockstar-black text-slate-100 font-vice selection:bg-vice-magenta selection:text-white">
       
       {/* SUCCESS TOAST BANNER */}
       {successBanner && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-xl bg-green-950 border-2 border-green-400 text-green-300 p-4 rounded-xl shadow-[0_0_30px_rgba(74,222,128,0.5)] font-mono text-xs flex items-center justify-between animate-bounce">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-xl bg-rockstar-card border-2 border-rockstar-yellow text-rockstar-yellow p-4 rounded-xl shadow-rockstar-glow font-mono text-xs flex items-center justify-between animate-bounce">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-400 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-rockstar-yellow shrink-0" />
             <span>{successBanner}</span>
           </div>
-          <button onClick={() => setSuccessBanner(null)} className="text-white hover:text-green-200">
+          <button onClick={() => setSuccessBanner(null)} className="text-white hover:text-rockstar-yellow">
             ✕
           </button>
         </div>
@@ -142,10 +132,10 @@ export default function Home() {
 
       {/* MAIN CONTENT */}
       <main className="flex-1">
-        {/* HERO HUB */}
+        {/* HERO SECTION */}
         <HeroQuantumStorm />
 
-        {/* RAFFLE NUMBER GRID */}
+        {/* RAFFLE NUMBER GRID (100 NUMBERS) */}
         <RaffleGrid
           tickets={tickets}
           selectedNumbers={selectedNumbers}
@@ -155,12 +145,9 @@ export default function Home() {
           onProceedToCheckout={handleProceedToCheckout}
           ticketPrice={15.0}
         />
-
-        {/* LEADERBOARD */}
-        <Leaderboard />
       </main>
 
-      {/* CHECKOUT MODAL (ETAPA 2 & 3) */}
+      {/* CHECKOUT MODAL */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
@@ -173,22 +160,25 @@ export default function Home() {
         isLoading={isReserving}
       />
 
-      {/* AUTH MODAL (ETAPA 4) */}
+      {/* AUTH MODAL */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialMode={authMode}
       />
 
-      {/* FOOTER */}
-      <footer className="w-full bg-cyber-dark border-t border-cyber-cyan/20 py-8 px-4 font-mono text-xs text-slate-500">
+      {/* FOOTER ROCKSTAR STYLE */}
+      <footer className="w-full bg-rockstar-black border-t border-rockstar-border py-8 px-4 font-mono text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div>
-            <div className="font-cyber font-bold text-slate-300 text-sm">QUANTUM_RAFFLE PLATFORM</div>
-            <p className="mt-1">© 2026 ELITE GAMER SETUPS. Todos os direitos reservados. Sorteios regulamentados.</p>
+            <div className="font-cyber font-black text-slate-200 text-sm tracking-wider uppercase">
+              HENRIQUE SETUP ★ RIFA PC GAMER
+            </div>
+            <p className="mt-1">© 2026 HENRIQUE SETUP. Todos os direitos reservados. Sorteio realizado via Loteria Federal.</p>
           </div>
-          <div className="flex items-center gap-4 text-cyber-cyan">
-            <span>SISTEMA 100% AUDITADO VIA PRISMA & MERCADO PAGO</span>
+          <div className="flex items-center gap-4 text-rockstar-yellow font-bold">
+            <ShieldCheck className="w-4 h-4 text-rockstar-yellow" />
+            <span>SISTEMA AUDITADO & PAGAMENTO PIX AUTOMÁTICO</span>
           </div>
         </div>
       </footer>
