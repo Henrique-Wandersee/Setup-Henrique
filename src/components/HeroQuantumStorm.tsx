@@ -50,7 +50,7 @@ export default function HeroQuantumStorm() {
           <div className="relative">
             <h1 className="font-cyber text-4xl sm:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight leading-tight [text-shadow:_0_4px_16px_rgba(0,0,0,0.9)]">
               HENRIQUE SETUP <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rockstar-yellow via-white to-vice-sunset filter drop-shadow-[0_0_20px_rgba(253,184,19,0.9)]">
+              <span className="text-{white}">
                 PC GAMER R* EDITION
               </span>
             </h1>
