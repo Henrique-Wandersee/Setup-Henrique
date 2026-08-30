@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 /**
  * API DE REGRAS DE NEGÓCIO DE BILHETES DA RIFA:
  * 1. Limpa reservas expiradas (expiresAt < now) retornando bilhetes para "AVAILABLE".

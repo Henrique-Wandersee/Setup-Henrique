@@ -30,16 +30,22 @@ export default function Home() {
   const fetchTickets = async () => {
     try {
       const res = await fetch("/api/tickets");
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
       const data = await res.json();
-      if (data.tickets) {
+      if (Array.isArray(data.tickets) && data.tickets.length > 0) {
         setTickets(data.tickets);
+      } else {
+        throw new Error("Nenhum bilhete retornado da API");
       }
     } catch (err) {
       console.error("Erro ao carregar bilhetes:", err);
       // Fallback local se a API estiver inicializando
       const initial: TicketItem[] = [];
       for (let i = 1; i <= 1000; i++) {
-        initial.push({ number: i, status: "AVAILABLE" });
+        const isPaid = [42, 88, 100, 333, 777].includes(i);
+        initial.push({ number: i, status: isPaid ? "PAID" : "AVAILABLE" });
       }
       setTickets(initial);
     }

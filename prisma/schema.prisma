@@ -1,13 +1,10 @@
-// Prisma Schema for Henrique Setup PC Gamer Raffle
-// Configurado para SQLite para execução local instantânea sem necessidade de servidor Postgres rodando na máquina.
-// Para usar PostgreSQL, altere provider para "postgresql" e configure a DATABASE_URL no .env.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       }
     }
 
+    const isMockEmail = !process.env.RESEND_API_KEY || process.env.RESEND_API_KEY.includes("mock");
     const passwordHash = await hashPassword(password);
 
     const newUser = await prisma.user.create({
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
         name,
         email,
         passwordHash,
-        emailVerified: null,
+        emailVerified: isMockEmail ? new Date() : null,
         role: "USER",
       },
     });
@@ -92,7 +93,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "Conta criada com sucesso! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme para realizar o login.",
+        message: isMockEmail
+          ? "Conta criada e ativada com sucesso! Você já pode realizar o login."
+          : "Conta criada com sucesso! Enviamos um link de confirmação para o seu e-mail. Por favor, confirme para realizar o login.",
       },
       { status: 201 }
     );
