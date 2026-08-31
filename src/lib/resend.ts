@@ -18,7 +18,7 @@ export async function sendEmailVerificationEmail(email: string, token: string) {
 
   try {
     const data = await resend.emails.send({
-      from: "Elite Gamer Setup <no-reply@cybernet.io>",
+      from: "Elite Gamer Setup <onboarding@resend.dev>",
       to: [email],
       subject: "⚡ Confirme seu E-mail - ELITE GAMER SETUPS RAFFLE",
       html: `
@@ -59,7 +59,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
   try {
     const data = await resend.emails.send({
-      from: "Elite Gamer Setup <no-reply@cybernet.io>",
+      from: "Elite Gamer Setup <onboarding@resend.dev>",
       to: [email],
       subject: "⚡ Redefinição de Senha - ELITE GAMER SETUPS RAFFLE",
       html: `
