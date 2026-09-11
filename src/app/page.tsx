@@ -44,8 +44,7 @@ export default function Home() {
       // Fallback local se a API estiver inicializando
       const initial: TicketItem[] = [];
       for (let i = 1; i <= 1000; i++) {
-        const isPaid = [42, 88, 100, 333, 777].includes(i);
-        initial.push({ number: i, status: isPaid ? "PAID" : "AVAILABLE" });
+        initial.push({ number: i, status: "AVAILABLE" });
       }
       setTickets(initial);
     }

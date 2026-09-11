@@ -62,14 +62,11 @@ async function main() {
   console.log("🎫 Generating 1,000 ticket slots (1 to 1000)...");
   const ticketsData = [];
   for (let i = 1; i <= 1000; i++) {
-    // Simula alguns números como comprados (PAID) para demonstração (ex: 42, 88, 100, 333, 777)
-    const isPaid = [42, 88, 100, 333, 777].includes(i);
-
     ticketsData.push({
       raffleId: raffle.id,
       number: i,
-      status: isPaid ? "PAID" : "AVAILABLE",
-      userId: isPaid ? demoUser.id : null,
+      status: "AVAILABLE",
+      userId: null,
       expiresAt: null,
     });
   }
