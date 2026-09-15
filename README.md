@@ -1,13 +1,4 @@
-Elite Gamer Setups Raffle — The Quantum Storm
-Plataforma web para sorteio de um PC Gamer ("The Quantum Storm"). Feita em Next.js (App Router) + TypeScript, com Prisma, NextAuth.js e pagamentos via PIX (Mercado Pago).
-Stack
-Frontend/Backend: Next.js 14 (App Router), React Server Components
-Estilo: Tailwind CSS, tema cyberpunk/neon
-Banco: SQLite em dev, PostgreSQL em produção
-ORM: Prisma
-Auth: NextAuth.js (credenciais, hash com bcrypt) + fluxo de recuperação de senha via Resend
-Pagamentos: Mercado Pago (PIX), com validação HMAC no webhook
-E-mail: Resend
+
 O que já está implementado
 Banco de dados (`prisma/schema.prisma`)
 `User`: cadastro, role (USER/ADMIN), senha com hash bcrypt, XP/nível
@@ -21,15 +12,8 @@ Webhook de pagamento (`src/app/api/webhooks/mercadopago/route.ts`)
 Recebe as notificações do Mercado Pago, valida a assinatura (`x-signature`, HMAC SHA-256) e, dentro de uma transação, atualiza o `Payment` para `APPROVED`, converte os `Ticket`s de `RESERVED` para `PAID` e credita XP/nível ao usuário.
 Auth e recuperação de senha (`src/lib/auth.ts`, `src/app/actions/auth.ts`)
 Login por credenciais com `bcrypt.compare` e sessão via JWT. `requestPasswordResetAction` gera um token com `crypto.randomBytes(32)` e dispara e-mail pelo Resend.
-Como rodar
-```bash
-npm install
-npm run prisma:generate
-npm run db:push
-npm run db:seed   # popula os 1.000 números e os dados do PC
-npm run dev
-```
-Acesse `http://localhost:3000`.
+
+
 Estrutura de pastas
 ```
 setup/
