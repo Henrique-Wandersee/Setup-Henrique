@@ -4,8 +4,6 @@ Projeto inspirado no universo de GTA: uma aplicação web para gestão e venda d
 
 O objetivo foi construir uma plataforma rápida, segura e fácil de usar, onde o usuário escolhe seus números e paga via PIX em poucos cliques.
 
-## Demonstração
-
 ![Setup Henrique](./Setup%20Henrique.png)
 
 ## Funcionalidades
