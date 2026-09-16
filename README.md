@@ -1,19 +1,59 @@
-Setup Henrique
+# Setup Henrique
 
-O que já está implementado <br>
-Banco de dados (`prisma/schema.prisma`) <br>
-`User`: cadastro, role (USER/ADMIN), senha com hash bcrypt, XP/nível<br>
-`Raffle`: dados da rifa (título, descrição, preço, total de números, specs em JSON)<br>
-`Ticket`: números vinculados ao usuário, status (`AVAILABLE`, `RESERVED`, `PAID`) e `expiresAt`<br>
-`Payment`: transações do Mercado Pago (PIX copia-e-cola + QR code)<br>
-`PasswordResetToken`: tokens de reset com expiração de 1h<br>
-Reserva de números (`src/app/actions/tickets.ts`)<br>
-Server Action dentro de `prisma.$transaction` para evitar race condition na reserva. Marca os números como `RESERVED` com expiração de 15 minutos e gera a cobrança PIX no Mercado Pago.<br>
-Webhook de pagamento (`src/app/api/webhooks/mercadopago/route.ts`)<br>
-Recebe as notificações do Mercado Pago, valida a assinatura (`x-signature`, HMAC SHA-256) e, dentro de uma transação, atualiza o `Payment` para `APPROVED`, converte os `Ticket`s de `RESERVED` para `PAID` e credita XP/nível ao usuário.<br>
-Auth e recuperação de senha (`src/lib/auth.ts`, `src/app/actions/auth.ts`)<br>
-Login por credenciais com `bcrypt.compare` e sessão via JWT. `requestPasswordResetAction` gera um token com `crypto.randomBytes(32)` e dispara e-mail pelo Resend.<br>
-<br>
+Projeto inspirado no universo de GTA: uma aplicação web para gestão e venda de rifas online de setups gamers.
+
+O objetivo foi construir uma plataforma rápida, segura e fácil de usar, onde o usuário escolhe seus números e paga via PIX em poucos cliques.
+
+## Demonstração
+
+![Setup Henrique](./Setup%20Henrique.png)
+
+## Funcionalidades
+
+**Seleção de bilhetes**
+Grade interativa com 1.000 números (R$ 30,00 cada), busca rápida, filtro por status (Disponíveis/Comprados) e carrinho dinâmico.
+
+**Pagamento via PIX**
+Integração com o Mercado Pago para geração automática de QR Code e chave copia-e-cola, com timer de reserva de 15 minutos.
+
+**Autenticação e segurança**
+Cadastro e login com NextAuth.js, validação de dados com Zod, senhas com hash via bcrypt e proteção contra tentativas de login incorretas.
+
+**Persistência e estrutura**
+Banco PostgreSQL com Prisma ORM. Reservas de número tratadas em transação, evitando que dois usuários reservem o mesmo número ao mesmo tempo.
+
+## Tecnologias
+
+| Camada | Stack |
+|---|---|
+| Frontend | Next.js 14, React, TypeScript, Tailwind CSS |
+| Backend / Banco | Node.js, Prisma ORM, PostgreSQL |
+| Integrações | Mercado Pago API, Resend API |
+
+## Como rodar
+
+\`\`\`bash
+git clone https://github.com/seu-usuario/setup-henrique.git
+cd setup-henrique
+npm install
+\`\`\`
+
+Configure as variáveis de ambiente (`.env`):
+
+\`\`\`env
+DATABASE_URL=
+NEXTAUTH_SECRET=
+MERCADOPAGO_ACCESS_TOKEN=
+RESEND_API_KEY=
+\`\`\`
+
+Depois:
+
+\`\`\`bash
+npx prisma generate
+npx prisma db push
+npm run dev
+\`\`\`
 
 Estrutura de pastas
 ```
