@@ -28,30 +28,6 @@ Banco PostgreSQL com Prisma ORM. Reservas de número tratadas em transação, ev
 | Backend / Banco | Node.js, Prisma ORM, PostgreSQL |
 | Integrações | Mercado Pago API, Resend API |
 
-## Como rodar
-
-\`\`\`bash
-git clone https://github.com/seu-usuario/setup-henrique.git
-cd setup-henrique
-npm install
-\`\`\`
-
-Configure as variáveis de ambiente (`.env`):
-
-\`\`\`env
-DATABASE_URL=
-NEXTAUTH_SECRET=
-MERCADOPAGO_ACCESS_TOKEN=
-RESEND_API_KEY=
-\`\`\`
-
-Depois:
-
-\`\`\`bash
-npx prisma generate
-npx prisma db push
-npm run dev
-\`\`\`
 
 Estrutura de pastas
 ```
